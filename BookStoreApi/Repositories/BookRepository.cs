@@ -1,16 +1,16 @@
 ﻿using BookStoreApi.Models;
+using BookStoreApi.Repositories.Interfaces;
 using BookStoreApi.Settings;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
-namespace BookStoreApi.Service;
+namespace BookStoreApi.Repositories;
 
-public class BooksService
+public class BookRepository : IBookRepository
 {
-    // interface do mongo que permite acessar os dados de um tabela especifica
     private readonly IMongoCollection<Book> _booksCollection;
 
-    public BooksService(
+    public BookRepository(
         IOptions<BookStoreDatabaseSettings> bookStoreDatabaseSettings)
     {
         var mongoClient = new MongoClient(bookStoreDatabaseSettings.Value.ConnectionString);
@@ -21,18 +21,18 @@ public class BooksService
             bookStoreDatabaseSettings.Value.BooksCollectionName);
     }
 
-    public async Task<List<Book>> GetBooksAsync() => 
+    public async Task<IEnumerable<Book>> GetAllAsync() =>
         await _booksCollection.FindSync(_ => true).ToListAsync();
 
-    public async Task<Book> GetBookAsync(string id) =>
+    public async Task<Book> GetByIdAsync(string id) =>
         await _booksCollection.Find(book => book.Id == id).FirstOrDefaultAsync();
-
-    public async Task CreateAsync(Book newBook) =>
+        
+    public async Task CreateBookAsync(Book newBook) =>
         await _booksCollection.InsertOneAsync(newBook);
-    
-    public async Task UpdateAsync(string id, Book updateBook) =>
-        await _booksCollection.ReplaceOneAsync(book => book.Id == id, updateBook);
 
-    public async Task RemoveAsync(string id) =>
+    public async Task UpdateBookAsync(Book updateBook) =>
+        await _booksCollection.ReplaceOneAsync(book => book.Id == updateBook.Id, updateBook);
+
+    public async Task RemoveBookAsync(string id) =>
         await _booksCollection.DeleteOneAsync(book => book.Id == id);
 }

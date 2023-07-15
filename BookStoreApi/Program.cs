@@ -1,3 +1,6 @@
+using BookStoreApi;
+using BookStoreApi.Repositories;
+using BookStoreApi.Repositories.Interfaces;
 using BookStoreApi.Service;
 using BookStoreApi.Settings;
 
@@ -7,7 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<BookStoreDatabaseSettings>(
     builder.Configuration.GetSection("BookStoreDatabase"));
 
-builder.Services.AddSingleton<BooksService>();
+builder.Services.AddSingleton<IBookService, BookService>();
+builder.Services.AddSingleton<IBookRepository, BookRepository>();
 
 builder.Services.AddControllers()
     .AddJsonOptions( // os nomes das propriedades na resposta JSON serão iguais aos nomes das propriedades
