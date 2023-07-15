@@ -13,7 +13,13 @@ builder.Services.Configure<BookStoreDatabaseSettings>(
 builder.Services.AddSingleton<IBookService, BookService>();
 builder.Services.AddSingleton<IBookRepository, BookRepository>();
 
+builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
+
 builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.SuppressModelStateInvalidFilter = true;
+    })
     .AddJsonOptions( // os nomes das propriedades na resposta JSON serão iguais aos nomes das propriedades
         options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
 

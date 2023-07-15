@@ -14,6 +14,7 @@ public class BookViewModel
     public string BookName { get; set; } = null!;
 
     [Required]
+    [Range(0, 2000)]
     public decimal Price { get; set; }
 
     [Required]

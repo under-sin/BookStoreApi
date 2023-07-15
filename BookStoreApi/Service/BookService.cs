@@ -1,33 +1,27 @@
-﻿using BookStoreApi.Models;
+﻿using AutoMapper;
+using BookStoreApi.Models;
 using BookStoreApi.Repositories.Interfaces;
-using BookStoreApi.Settings;
 using BookStoreApi.ViewModel;
-using Microsoft.Extensions.Options;
-using MongoDB.Driver;
 
 namespace BookStoreApi.Service;
 
 public class BookService : IBookService
 {
     private readonly IBookRepository _bookRepository;
+    private readonly IMapper _mapper;
 
-    public BookService(IBookRepository bookRepository)
+    public BookService(
+        IBookRepository bookRepository,
+        IMapper mapper)
     {
         _bookRepository = bookRepository;
+        _mapper = mapper;
     }
 
     public async Task<IEnumerable<BookViewModel>> GetAllAsync()
     {
         var books = await _bookRepository.GetAllAsync();
-
-        var booksViewModel = books.Select(book => new BookViewModel
-        {
-            Id = book.Id,
-            BookName = book.BookName,
-            Category = book.Category,
-            Price = book.Price,
-            Author = book.Author
-        });
+        var booksViewModel = _mapper.Map<IEnumerable<BookViewModel>>(books);
 
         return booksViewModel;
     }
@@ -36,43 +30,20 @@ public class BookService : IBookService
     {
         var book = await _bookRepository.GetByIdAsync(id);
 
-        var bookViewModel = new BookViewModel
-        {
-            Id = book.Id,
-            BookName = book.BookName,
-            Category = book.Category,
-            Price = book.Price,
-            Author = book.Author
-        };
-
-        return bookViewModel;
+        return _mapper.Map<BookViewModel>(book);
     }
 
     public async Task<string> CreateBookAsync(BookViewModel bookViewModel)
     {
-        Book book = new()
-        {
-            BookName = bookViewModel.BookName,
-            Category = bookViewModel.Category,
-            Price = bookViewModel.Price,
-            Author = bookViewModel.Author
-        };
-
+        var book = _mapper.Map<Book>(bookViewModel);
         await _bookRepository.CreateBookAsync(book);
+
         return book.Id!;
     }
 
     public async Task UpdateBookAsync(BookViewModel bookViewModel)
     {
-        Book book = new()
-        {
-            Id = bookViewModel.Id,
-            BookName = bookViewModel.BookName,
-            Category = bookViewModel.Category,
-            Price = bookViewModel.Price,
-            Author = bookViewModel.Author
-        };
-
+        var book = _mapper.Map<Book>(bookViewModel);
         await _bookRepository.UpdateBookAsync(book);
     }
 

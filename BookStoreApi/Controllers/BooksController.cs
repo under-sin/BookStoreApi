@@ -1,5 +1,5 @@
-﻿using BookStoreApi.Models;
-using BookStoreApi.Service;
+﻿using System.Data.Common;
+using BookStoreApi.Extensions;
 using BookStoreApi.ViewModel;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,51 +14,115 @@ public class BooksController : ControllerBase
     public BooksController(IBookService bookService) => _bookService = bookService;
 
     [HttpGet]
-    public async Task<IEnumerator<BookViewModel>> GetBooksAsync() 
-        => (IEnumerator<BookViewModel>)await _bookService.GetAllAsync();
+    public async Task<ActionResult<List<BookViewModel>>> GetAllAsync()
+    {
+        try
+        {
+            var books = (await _bookService.GetAllAsync()).ToList();
+
+            return Ok(new ResultViewModel<List<BookViewModel>>(books));
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new ResultViewModel<List<BookViewModel>>("Falha interna no servido"));
+        }
+
+    }
 
     [HttpGet("{id:length(24)}")]
-    public async Task<ActionResult<BookViewModel>> GetBookAsync(string id)
+    public async Task<ActionResult<BookViewModel>> GetByIdAsync(string id)
     {
-        var book = await _bookService.GetByIdAsync(id);
+        try
+        {
+            var book = await _bookService.GetByIdAsync(id);
 
-        return book is null ? NotFound() : book;
+            if (book is null)
+                return NotFound(new ResultViewModel<BookViewModel>("Conteúdo não encontrado"));
+
+            return Ok(new ResultViewModel<BookViewModel>(book));
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new ResultViewModel<BookViewModel>("Falha interna no servido"));
+        }
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateAsync(BookViewModel newBook)
+    public async Task<IActionResult> CreateBookAsync(BookViewModel newBook)
     {
-        var newBookId = await _bookService.CreateBookAsync(newBook);
-        newBook.Id = newBookId;
+        if (!ModelState.IsValid)
+            return BadRequest(new ResultViewModel<BookViewModel>(ModelState.GetErrors()));
 
-        return CreatedAtAction(nameof(GetBookAsync), new { id = newBookId }, newBook);
+        try
+        {
+            var newBookId = await _bookService.CreateBookAsync(newBook);
+            newBook.Id = newBookId;
+
+            return CreatedAtAction(nameof(GetByIdAsync), new { id = newBookId }, new ResultViewModel<BookViewModel>(newBook));
+        }
+        catch (DbException)
+        {
+            return StatusCode(500, new ResultViewModel<BookViewModel>("Não foi possivel incluir o livro"));
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new ResultViewModel<BookViewModel>("Falha interna no servido"));
+        }
+
     }
 
     [HttpPut("{id:length(24)}")]
-    public async Task<IActionResult> UpdateAsync(string id, BookViewModel updateBook)
+    public async Task<IActionResult> UpdateBookAsync(string id, BookViewModel updateBook)
     {
-        var book = await _bookService.GetByIdAsync(id);
+        if (!ModelState.IsValid)
+            return BadRequest(new ResultViewModel<BookViewModel>(ModelState.GetErrors()));
 
-        if(book is null)
-            return NotFound();
+        try
+        {
+            var book = await _bookService.GetByIdAsync(id);
 
-        updateBook.Id = book.Id;
+            if (book is null)
+                return NotFound(new ResultViewModel<BookViewModel>("Conteúdo não encontrado"));
 
-        await _bookService.UpdateBookAsync(updateBook);
+            updateBook.Id = book.Id;
 
-        return NoContent();
+            await _bookService.UpdateBookAsync(updateBook);
+
+            return Ok(new ResultViewModel<BookViewModel>(book));
+        }
+        catch (DbException)
+        {
+            return StatusCode(500, new ResultViewModel<BookViewModel>("Não foi possivel atualizar o livro"));
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new ResultViewModel<BookViewModel>("Falha interna no servido"));
+        }
+
     }
 
     [HttpDelete("{id:length(24)}")]
-    public async Task<IActionResult> DeleteAsync(string id)
+    public async Task<IActionResult> RemoveBookAsync(string id)
     {
         var book = await _bookService.GetByIdAsync(id);
 
-        if(book is null)
-            return NotFound();
+        try
+        {
+            if (book is null)
+                return NotFound(new ResultViewModel<BookViewModel>("Conteúdo não encontrado"));
 
-        await _bookService.RemoveBookAsync(id);
+            await _bookService.RemoveBookAsync(id);
 
-        return NoContent();
+            return Ok(new ResultViewModel<BookViewModel>(book));
+        }
+        catch (DbException)
+        {
+            return StatusCode(500, new ResultViewModel<BookViewModel>("Não foi possivel atualizar o livro"));
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new ResultViewModel<BookViewModel>("Falha interna no servido"));
+        }
+
     }
 }
