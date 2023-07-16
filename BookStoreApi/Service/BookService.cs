@@ -2,6 +2,7 @@
 using BookStoreApi.Models;
 using BookStoreApi.Repositories.Interfaces;
 using BookStoreApi.ViewModel;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace BookStoreApi.Service;
 
@@ -9,19 +10,32 @@ public class BookService : IBookService
 {
     private readonly IBookRepository _bookRepository;
     private readonly IMapper _mapper;
+    private readonly IMemoryCache _cache;
 
     public BookService(
         IBookRepository bookRepository,
-        IMapper mapper)
+        IMapper mapper,
+        IMemoryCache cache)
     {
         _bookRepository = bookRepository;
         _mapper = mapper;
+        _cache = cache;
     }
 
     public async Task<List<BookViewModel>> GetPagedAsync(int pageNumber, int pageSize)
     {
+        // verifica se os dados estão em cache
+        if(_cache.TryGetValue<List<BookViewModel>>("BooksViewModelCache", out var cachedBooksViewModel))
+            return cachedBooksViewModel!;
+
         var pagedBooks = await _bookRepository.GetPagedAsync(pageNumber, pageSize);
         var booksViewModel = _mapper.Map<List<BookViewModel>>(pagedBooks);
+
+        // defini a duração do cache, quanto tempo ele vai durar.
+        var cacheOptions = new MemoryCacheEntryOptions()
+            .SetSlidingExpiration(TimeSpan.FromMinutes(10));
+
+        _cache.Set("BooksViewModelCache", booksViewModel, cacheOptions);
 
         return booksViewModel;
     }

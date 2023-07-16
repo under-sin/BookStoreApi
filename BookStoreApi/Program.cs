@@ -14,6 +14,7 @@ builder.Services.AddSingleton<IBookRepository, BookRepository>();
 
 // Configuração do automapper
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
+builder.Services.AddMemoryCache();
 
 builder.Services.AddControllers()
     .ConfigureApiBehaviorOptions(options =>
