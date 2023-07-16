@@ -14,23 +14,25 @@ public class BooksController : ControllerBase
     public BooksController(IBookService bookService) => _bookService = bookService;
 
     [HttpGet]
-    public async Task<ActionResult<List<BookViewModel>>> GetAllAsync()
+    public async Task<ActionResult<List<BookViewModel>>> GetAllAsync(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
     {
         try
         {
-            var books = (await _bookService.GetAllAsync()).ToList();
+            var pagedBooks = (await _bookService.GetPagedAsync(pageNumber, pageSize)).ToList();
 
-            return Ok(new ResultViewModel<List<BookViewModel>>(books));
+            return Ok(new ResultViewModel<List<BookViewModel>>(pagedBooks));
         }
         catch (Exception)
         {
             return StatusCode(500, new ResultViewModel<List<BookViewModel>>("Falha interna no servido"));
         }
-
     }
 
     [HttpGet("{id:length(24)}")]
-    public async Task<ActionResult<BookViewModel>> GetByIdAsync(string id)
+    public async Task<ActionResult<BookViewModel>> GetByIdAsync(
+        [FromRoute] string id)
     {
         try
         {
@@ -48,7 +50,8 @@ public class BooksController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateBookAsync(BookViewModel newBook)
+    public async Task<IActionResult> CreateBookAsync(
+        [FromBody] BookViewModel newBook)
     {
         if (!ModelState.IsValid)
             return BadRequest(new ResultViewModel<BookViewModel>(ModelState.GetErrors()));
@@ -72,7 +75,9 @@ public class BooksController : ControllerBase
     }
 
     [HttpPut("{id:length(24)}")]
-    public async Task<IActionResult> UpdateBookAsync(string id, BookViewModel updateBook)
+    public async Task<IActionResult> UpdateBookAsync(
+        [FromRoute] string id, 
+        [FromBody] BookViewModel updateBook)
     {
         if (!ModelState.IsValid)
             return BadRequest(new ResultViewModel<BookViewModel>(ModelState.GetErrors()));
@@ -102,7 +107,8 @@ public class BooksController : ControllerBase
     }
 
     [HttpDelete("{id:length(24)}")]
-    public async Task<IActionResult> RemoveBookAsync(string id)
+    public async Task<IActionResult> RemoveBookAsync(
+        [FromRoute] string id)
     {
         var book = await _bookService.GetByIdAsync(id);
 

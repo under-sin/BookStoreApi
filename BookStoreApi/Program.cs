@@ -6,21 +6,23 @@ using BookStoreApi.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.Configure<BookStoreDatabaseSettings>(
     builder.Configuration.GetSection("BookStoreDatabase"));
 
 builder.Services.AddSingleton<IBookService, BookService>();
 builder.Services.AddSingleton<IBookRepository, BookRepository>();
 
+// Configuração do automapper
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
 builder.Services.AddControllers()
     .ConfigureApiBehaviorOptions(options =>
     {
+        // remove a validação padrão nas models. Isso é necessário para conseguir pegar a lista de erros.
         options.SuppressModelStateInvalidFilter = true;
     })
-    .AddJsonOptions( // os nomes das propriedades na resposta JSON serão iguais aos nomes das propriedades
+    .AddJsonOptions( 
+        // os nomes das propriedades na resposta JSON serão iguais aos nomes das propriedades
         options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
 
 builder.Services.AddMvc(options => options.SuppressAsyncSuffixInActionNames = false);

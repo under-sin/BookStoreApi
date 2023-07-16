@@ -4,6 +4,8 @@ namespace BookStoreApi.Repositories.Interfaces;
 
 public interface IBookRepository
 {
+    // getPagedBooksAsync
+    Task<List<Book>> GetPagedAsync(int pageNumber, int pageSize);
     // getAllAsync
     Task<IEnumerable<Book>> GetAllAsync();
     // getByIdAsync

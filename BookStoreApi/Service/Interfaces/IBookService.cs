@@ -1,9 +1,10 @@
 ﻿using BookStoreApi.ViewModel;
-
 namespace BookStoreApi;
 
 public interface IBookService
 {
+    // getPagedBooksAsync
+    Task<List<BookViewModel>> GetPagedAsync(int pageNumber, int pageSize);
     // getAllAsync
     Task<IEnumerable<BookViewModel>> GetAllAsync();
     // getByIdAsync

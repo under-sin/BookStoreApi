@@ -18,6 +18,14 @@ public class BookService : IBookService
         _mapper = mapper;
     }
 
+    public async Task<List<BookViewModel>> GetPagedAsync(int pageNumber, int pageSize)
+    {
+        var pagedBooks = await _bookRepository.GetPagedAsync(pageNumber, pageSize);
+        var booksViewModel = _mapper.Map<List<BookViewModel>>(pagedBooks);
+
+        return booksViewModel;
+    }
+
     public async Task<IEnumerable<BookViewModel>> GetAllAsync()
     {
         var books = await _bookRepository.GetAllAsync();

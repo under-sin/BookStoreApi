@@ -26,7 +26,7 @@ public class BookRepository : IBookRepository
 
     public async Task<Book> GetByIdAsync(string id) =>
         await _booksCollection.Find(book => book.Id == id).FirstOrDefaultAsync();
-        
+
     public async Task CreateBookAsync(Book newBook) =>
         await _booksCollection.InsertOneAsync(newBook);
 
@@ -35,4 +35,19 @@ public class BookRepository : IBookRepository
 
     public async Task RemoveBookAsync(string id) =>
         await _booksCollection.DeleteOneAsync(book => book.Id == id);
+
+    public async Task<List<Book>> GetPagedAsync(int pageNumber, int pageSize)
+    {
+        // order por id de forma ascending
+        var sort = Builders<Book>.Sort.Ascending(book => book.Id);
+
+        var books = await _booksCollection
+            .Find(FilterDefinition<Book>.Empty)
+            .Sort(sort)
+            .Skip((pageNumber - 1) * pageSize)
+            .Limit(pageSize)
+            .ToListAsync();
+
+        return books;
+    }
 }
