@@ -1,0 +1,20 @@
+﻿version: '3.4'
+
+services:
+  bookstoreapi:
+    image: bookstoreapi
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - ConnectionStrings__MongoDb=mongodb://localhost:27017
+    ports:
+      - "8000:80"
+
+  mongo:
+    image: mongo
+    volumes:
+      - mongodb_data_container:/data/db
+
+volumes:
+  mongodb_data_container:

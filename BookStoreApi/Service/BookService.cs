@@ -28,13 +28,14 @@ public class BookService : IBookService
         if(_cache.TryGetValue<List<BookViewModel>>("BooksViewModelCache", out var cachedBooksViewModel))
             return cachedBooksViewModel!;
 
-        var pagedBooks = await _bookRepository.GetPagedAsync(pageNumber, pageSize);
+        var pagedBooks = await _bookRepository.GetAllAsync();
         var booksViewModel = _mapper.Map<List<BookViewModel>>(pagedBooks);
 
         // defini a duração do cache, quanto tempo ele vai durar.
         var cacheOptions = new MemoryCacheEntryOptions()
             .SetSlidingExpiration(TimeSpan.FromMinutes(10));
 
+        // define o cache
         _cache.Set("BooksViewModelCache", booksViewModel, cacheOptions);
 
         return booksViewModel;
